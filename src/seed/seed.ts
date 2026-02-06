@@ -34,7 +34,12 @@ async function main() {
     where: { email: 'test@boxful.com' },
     update: {},
     create: {
-      name: 'Usuario de Prueba',
+      firstName: 'Usuario',
+      lastName: 'De Prueba',
+      gender: 'M',
+      birthDate: new Date('1990-01-01'),
+      whatsappCode: '+503',
+      whatsappNumber: '70001234',
       email: 'test@boxful.com',
       password: hashedPassword,
     },

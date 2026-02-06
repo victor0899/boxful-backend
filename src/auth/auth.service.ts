@@ -29,8 +29,13 @@ export class AuthService {
 
     const user = await this.prisma.user.create({
       data: {
-        name: dto.name,
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        gender: dto.gender,
+        birthDate: new Date(dto.birthDate),
         email: dto.email,
+        whatsappCode: dto.whatsappCode,
+        whatsappNumber: dto.whatsappNumber,
         password: hashedPassword,
       },
     });
@@ -39,7 +44,12 @@ export class AuthService {
 
     return {
       accessToken: token,
-      user: { id: user.id, name: user.name, email: user.email },
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+      },
     };
   }
 
@@ -62,14 +72,25 @@ export class AuthService {
 
     return {
       accessToken: token,
-      user: { id: user.id, name: user.name, email: user.email },
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+      },
     };
   }
 
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, name: true, email: true, createdAt: true },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        createdAt: true,
+      },
     });
 
     if (!user) {

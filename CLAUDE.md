@@ -31,6 +31,7 @@ src/
   app.module.ts        -> Root module importing all feature modules
   prisma/              -> Global PrismaService (extends PrismaClient, singleton)
   auth/                -> Register, login, JWT strategy, JwtAuthGuard
+  verification/        -> Email verification with Resend (6-digit codes, 10min expiry)
   orders/              -> CRUD + pagination + filters + CSV export
   webhooks/            -> POST /webhooks/order-status (status + COD amount updates)
   shipping-costs/      -> GET costs per day of week
@@ -46,8 +47,15 @@ src/
 - `passport-jwt` secretOrKey requires non-undefined string - use `|| 'fallback'`
 - MongoDB with Prisma: no migrations, use `db push`. Embedded types use `type` keyword.
 
+## Verification Module
+- **Resend** for sending emails (API key in `RESEND_API_KEY` env var)
+- Sender: `Boxful <onboarding@resend.dev>` (Resend free tier)
+- Codes stored in-memory (Map), expire after 10 minutes
+- **Master code `000000`** always passes verification (for dev/demo)
+- Endpoints: `POST /api/verification/send-code`, `POST /api/verification/verify-code`
+
 ## Database Schema (prisma/schema.prisma)
-- **User**: id, name, email (unique), password (bcrypt), orders[]
+- **User**: id, firstName, lastName, gender, birthDate, whatsappCode, whatsappNumber, email (unique), password (bcrypt), orders[] — mapped to `users` collection
 - **Order**: client data, packages[] (embedded Package type), status, COD fields, shipping/settlement amounts
 - **Package** (embedded type): description, weight, height, width, length, quantity
 - **ShippingCost**: dayOfWeek (0-6, unique), dayName, cost
@@ -57,6 +65,7 @@ src/
 - `JWT_SECRET` - JWT signing secret
 - `PORT` - Server port (default 3001)
 - `FRONTEND_URL` - Additional CORS origin (optional)
+- `RESEND_API_KEY` - Resend API key for email verification
 
 ## Important Notes
 - Do NOT mention AI tools anywhere in code, commits, or documentation

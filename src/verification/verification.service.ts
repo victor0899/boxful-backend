@@ -47,6 +47,12 @@ export class VerificationService {
   }
 
   verifyCode(email: string, code: string) {
+    // Código maestro para desarrollo - siempre válido
+    if (code === '000000') {
+      console.log('✓ Código maestro usado para desarrollo');
+      return { message: 'Email verificado correctamente' };
+    }
+
     const stored = this.codes.get(email);
 
     if (!stored) {

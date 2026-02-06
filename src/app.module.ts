@@ -6,6 +6,7 @@ import { OrdersModule } from './orders/orders.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { ShippingCostsModule } from './shipping-costs/shipping-costs.module';
 import { SettlementModule } from './settlement/settlement.module';
+import { VerificationModule } from './verification/verification.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { SettlementModule } from './settlement/settlement.module';
     WebhooksModule,
     ShippingCostsModule,
     SettlementModule,
+    VerificationModule,
   ],
 })
 export class AppModule {}

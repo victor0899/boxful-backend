@@ -8,6 +8,7 @@ import {
   IsArray,
   ValidateNested,
   Min,
+  IsDateString,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -45,22 +46,49 @@ export class PackageDto {
 }
 
 export class CreateOrderDto {
-  @ApiProperty({ example: 'María López' })
+  // Nuevos campos
+  @ApiProperty({ example: 'Col. Escalón, Calle Principal #123' })
   @IsString()
   @IsNotEmpty()
-  clientName: string;
+  pickupAddress: string;
 
+  @ApiPropertyOptional({ example: '2026-02-10T10:00:00Z' })
+  @IsOptional()
+  @IsDateString()
+  scheduledDate?: string;
+
+  @ApiProperty({ example: 'María' })
+  @IsString()
+  @IsNotEmpty()
+  firstName: string;
+
+  @ApiProperty({ example: 'López' })
+  @IsString()
+  @IsNotEmpty()
+  lastName: string;
+
+  @ApiProperty({ example: '503' })
+  @IsString()
+  @IsNotEmpty()
+  phoneCode: string;
+
+  @ApiProperty({ example: '78901234' })
+  @IsString()
+  @IsNotEmpty()
+  phoneNumber: string;
+
+  @ApiPropertyOptional({ example: 'Llamar antes de llegar' })
+  @IsString()
+  @IsOptional()
+  instructions?: string;
+
+  // Campos existentes
   @ApiPropertyOptional({ example: 'maria@example.com' })
   @IsEmail()
   @IsOptional()
   clientEmail?: string;
 
-  @ApiProperty({ example: '+503 7890-1234' })
-  @IsString()
-  @IsNotEmpty()
-  clientPhone: string;
-
-  @ApiProperty({ example: 'Col. Escalón, Calle Principal #123' })
+  @ApiProperty({ example: 'Col. San Benito, Calle La Reforma #456' })
   @IsString()
   @IsNotEmpty()
   clientAddress: string;

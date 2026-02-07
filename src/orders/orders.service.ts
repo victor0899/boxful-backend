@@ -10,6 +10,10 @@ export class OrdersService {
   async create(userId: string, dto: CreateOrderDto) {
     const shippingCost = await this.getShippingCostForToday();
 
+    // Calcular clientName y clientPhone automáticamente
+    const clientName = `${dto.firstName} ${dto.lastName}`;
+    const clientPhone = `+${dto.phoneCode} ${dto.phoneNumber}`;
+
     let settlementAmount: number | undefined;
     let codCommission: number | undefined;
 
@@ -23,9 +27,21 @@ export class OrdersService {
     return this.prisma.order.create({
       data: {
         userId,
-        clientName: dto.clientName,
+        // Nuevos campos
+        pickupAddress: dto.pickupAddress,
+        scheduledDate: dto.scheduledDate
+          ? new Date(dto.scheduledDate)
+          : undefined,
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        phoneCode: dto.phoneCode,
+        phoneNumber: dto.phoneNumber,
+        instructions: dto.instructions,
+        // Campos calculados automáticamente
+        clientName,
+        clientPhone,
+        // Campos existentes
         clientEmail: dto.clientEmail,
-        clientPhone: dto.clientPhone,
         clientAddress: dto.clientAddress,
         clientDepartment: dto.clientDepartment,
         clientMunicipality: dto.clientMunicipality,

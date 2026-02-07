@@ -28,6 +28,15 @@ model Order {
   id                 String    @id @default(auto()) @map("_id") @db.ObjectId
   userId             String    @db.ObjectId
   user               User      @relation(fields: [userId], references: [id])
+  // Nuevos campos
+  pickupAddress      String
+  scheduledDate      DateTime?
+  firstName          String
+  lastName           String
+  phoneCode          String
+  phoneNumber        String
+  instructions       String?
+  // Campos existentes (calculados automáticamente por compatibilidad)
   clientName         String
   clientEmail        String?
   clientPhone        String

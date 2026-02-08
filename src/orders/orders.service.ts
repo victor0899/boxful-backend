@@ -29,9 +29,7 @@ export class OrdersService {
         userId,
         // Nuevos campos
         pickupAddress: dto.pickupAddress,
-        scheduledDate: dto.scheduledDate
-          ? new Date(dto.scheduledDate)
-          : undefined,
+        scheduledDate: new Date(dto.scheduledDate),
         firstName: dto.firstName,
         lastName: dto.lastName,
         phoneCode: dto.phoneCode,

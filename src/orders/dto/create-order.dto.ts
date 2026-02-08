@@ -9,9 +9,11 @@ import {
   ValidateNested,
   Min,
   IsDateString,
+  ArrayMinSize,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNotPastDate } from './validators/is-not-past-date.validator';
 
 export class PackageDto {
   @ApiProperty({ example: 'Caja de zapatos' })
@@ -52,10 +54,10 @@ export class CreateOrderDto {
   @IsNotEmpty()
   pickupAddress: string;
 
-  @ApiPropertyOptional({ example: '2026-02-10T10:00:00Z' })
-  @IsOptional()
+  @ApiProperty({ example: '2026-02-10T10:00:00Z' })
   @IsDateString()
-  scheduledDate?: string;
+  @IsNotPastDate()
+  scheduledDate: string;
 
   @ApiProperty({ example: 'María' })
   @IsString()
@@ -83,10 +85,9 @@ export class CreateOrderDto {
   instructions?: string;
 
   // Campos existentes
-  @ApiPropertyOptional({ example: 'maria@example.com' })
+  @ApiProperty({ example: 'maria@example.com' })
   @IsEmail()
-  @IsOptional()
-  clientEmail?: string;
+  clientEmail: string;
 
   @ApiProperty({ example: 'Col. San Benito, Calle La Reforma #456' })
   @IsString()
@@ -110,6 +111,7 @@ export class CreateOrderDto {
 
   @ApiProperty({ type: [PackageDto] })
   @IsArray()
+  @ArrayMinSize(1, { message: 'Debe haber al menos 1 paquete' })
   @ValidateNested({ each: true })
   @Type(() => PackageDto)
   packages: PackageDto[];

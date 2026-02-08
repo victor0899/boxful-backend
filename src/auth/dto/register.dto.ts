@@ -7,6 +7,7 @@ import {
   IsIn,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsNotFutureDate } from './validators/is-not-future-date.validator';
 
 export class RegisterDto {
   @ApiProperty({ example: 'John' })
@@ -26,6 +27,7 @@ export class RegisterDto {
 
   @ApiProperty({ example: '1990-01-15' })
   @IsDateString()
+  @IsNotFutureDate()
   birthDate: string;
 
   @ApiProperty({ example: 'john@example.com' })

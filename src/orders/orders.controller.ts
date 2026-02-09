@@ -44,6 +44,15 @@ export class OrdersController {
     res.send(csv);
   }
 
+  @Get('settlement-balance')
+  @ApiOperation({ summary: 'Obtener balance de liquidación del usuario' })
+  async getSettlementBalance(@Req() req: any) {
+    const balance = await this.ordersService.getSettlementBalance(
+      req.user.userId,
+    );
+    return { balance };
+  }
+
   @Get(':id/pdf')
   @ApiOperation({ summary: 'Generar PDF de una orden' })
   async generatePdf(

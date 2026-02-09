@@ -203,6 +203,21 @@ export class OrdersService {
     return pdf;
   }
 
+  async getSettlementBalance(userId: string): Promise<number> {
+    const result = await this.prisma.order.aggregate({
+      where: {
+        userId,
+        status: 'DELIVERED',
+        isCOD: true,
+      },
+      _sum: {
+        settlementAmount: true,
+      },
+    });
+
+    return result._sum.settlementAmount || 0;
+  }
+
   private async getShippingCostForToday(): Promise<number> {
     const today = new Date().getDay();
     const cost = await this.prisma.shippingCost.findUnique({

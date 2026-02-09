@@ -4,8 +4,18 @@ import * as path from 'path';
 export const getOrderPdfTemplate = (order: any) => {
   const formatDate = (date: Date): string => {
     const months = [
-      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+      'Enero',
+      'Febrero',
+      'Marzo',
+      'Abril',
+      'Mayo',
+      'Junio',
+      'Julio',
+      'Agosto',
+      'Septiembre',
+      'Octubre',
+      'Noviembre',
+      'Diciembre',
     ];
     const d = new Date(date);
     return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;

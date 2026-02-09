@@ -62,7 +62,8 @@ export class OrdersService {
     const where: any = { userId };
 
     if (query.status) {
-      where.status = query.status;
+      const statuses = query.status.split(',').map(s => s.trim());
+      where.status = statuses.length === 1 ? statuses[0] : { in: statuses };
     }
 
     if (query.fromDate || query.toDate) {

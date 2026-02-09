@@ -31,11 +31,9 @@ export class WebhooksService {
       updateData.codCollectedAmount = dto.codCollectedAmount;
     }
 
-    if (
-      dto.status === 'DELIVERED' &&
-      order.shippingCost !== null
-    ) {
-      const collectedAmount = dto.codCollectedAmount ?? order.codCollectedAmount ?? 0;
+    if (dto.status === 'DELIVERED' && order.shippingCost !== null) {
+      const collectedAmount =
+        dto.codCollectedAmount ?? order.codCollectedAmount ?? 0;
       const settlement = this.settlementService.calculateSettlement({
         isCOD: order.isCOD,
         codCollectedAmount: collectedAmount,

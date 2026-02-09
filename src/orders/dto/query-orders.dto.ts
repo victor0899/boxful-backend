@@ -1,4 +1,9 @@
-import { IsOptional, IsString, IsNumberString, IsBooleanString } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsNumberString,
+  IsBooleanString,
+} from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class QueryOrdersDto {

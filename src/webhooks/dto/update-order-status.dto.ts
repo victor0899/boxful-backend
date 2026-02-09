@@ -7,7 +7,10 @@ export class UpdateOrderStatusDto {
   @IsNotEmpty()
   orderId: string;
 
-  @ApiProperty({ example: 'DELIVERED', enum: ['PENDING', 'IN_TRANSIT', 'DELIVERED', 'CANCELLED'] })
+  @ApiProperty({
+    example: 'DELIVERED',
+    enum: ['PENDING', 'IN_TRANSIT', 'DELIVERED', 'CANCELLED'],
+  })
   @IsString()
   @IsNotEmpty()
   status: string;

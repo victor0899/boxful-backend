@@ -37,11 +37,37 @@ export class OrdersController {
 
   @Get('export/csv')
   @ApiOperation({ summary: 'Exportar órdenes a CSV' })
-  async exportCsv(@Req() req: any, @Res() res: Response) {
-    const csv = await this.ordersService.exportCsv(req.user.userId);
-    res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', 'attachment; filename=ordenes.csv');
-    res.send(csv);
+  async exportCsv(
+    @Req() req: any,
+    @Query() query: QueryOrdersDto,
+    @Res() res: Response,
+  ) {
+    const csv = await this.ordersService.exportCsv(req.user.userId, query);
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="ordenes.csv"');
+    res.send('\uFEFF' + csv);
+  }
+
+  @Get('export/excel')
+  @ApiOperation({ summary: 'Exportar órdenes a Excel' })
+  async exportExcel(
+    @Req() req: any,
+    @Query() query: QueryOrdersDto,
+    @Res() res: Response,
+  ) {
+    const buffer = await this.ordersService.exportExcel(
+      req.user.userId,
+      query,
+    );
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="ordenes.xlsx"',
+    );
+    res.send(buffer);
   }
 
   @Get('settlement-balance')

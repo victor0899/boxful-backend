@@ -144,24 +144,30 @@ export class OrdersService {
     /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
     const where: any = { userId };
 
-    // Aplicar los mismos filtros que findAll
-    if (query.status) {
-      const statuses = query.status.split(',').map((s) => s.trim());
-      where.status = statuses.length === 1 ? statuses[0] : { in: statuses };
-    }
-
-    if (query.fromDate || query.toDate) {
-      where.createdAt = {};
-      if (query.fromDate) {
-        where.createdAt.gte = new Date(query.fromDate);
+    // Si hay IDs específicos, filtrar solo por esos (ignorar otros filtros)
+    if (query.ids) {
+      const idsArray = query.ids.split(',').map((id) => id.trim());
+      where.id = { in: idsArray };
+    } else {
+      // Aplicar filtros normales solo si no hay IDs específicos
+      if (query.status) {
+        const statuses = query.status.split(',').map((s) => s.trim());
+        where.status = statuses.length === 1 ? statuses[0] : { in: statuses };
       }
-      if (query.toDate) {
-        where.createdAt.lte = new Date(query.toDate + 'T23:59:59.999Z');
-      }
-    }
 
-    if (query.isCOD !== undefined) {
-      where.isCOD = query.isCOD === 'true';
+      if (query.fromDate || query.toDate) {
+        where.createdAt = {};
+        if (query.fromDate) {
+          where.createdAt.gte = new Date(query.fromDate);
+        }
+        if (query.toDate) {
+          where.createdAt.lte = new Date(query.toDate + 'T23:59:59.999Z');
+        }
+      }
+
+      if (query.isCOD !== undefined) {
+        where.isCOD = query.isCOD === 'true';
+      }
     }
 
     const orders = await this.prisma.order.findMany({
@@ -232,24 +238,30 @@ export class OrdersService {
     /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
     const where: any = { userId };
 
-    // Aplicar los mismos filtros que findAll
-    if (query.status) {
-      const statuses = query.status.split(',').map((s) => s.trim());
-      where.status = statuses.length === 1 ? statuses[0] : { in: statuses };
-    }
-
-    if (query.fromDate || query.toDate) {
-      where.createdAt = {};
-      if (query.fromDate) {
-        where.createdAt.gte = new Date(query.fromDate);
+    // Si hay IDs específicos, filtrar solo por esos (ignorar otros filtros)
+    if (query.ids) {
+      const idsArray = query.ids.split(',').map((id) => id.trim());
+      where.id = { in: idsArray };
+    } else {
+      // Aplicar filtros normales solo si no hay IDs específicos
+      if (query.status) {
+        const statuses = query.status.split(',').map((s) => s.trim());
+        where.status = statuses.length === 1 ? statuses[0] : { in: statuses };
       }
-      if (query.toDate) {
-        where.createdAt.lte = new Date(query.toDate + 'T23:59:59.999Z');
-      }
-    }
 
-    if (query.isCOD !== undefined) {
-      where.isCOD = query.isCOD === 'true';
+      if (query.fromDate || query.toDate) {
+        where.createdAt = {};
+        if (query.fromDate) {
+          where.createdAt.gte = new Date(query.fromDate);
+        }
+        if (query.toDate) {
+          where.createdAt.lte = new Date(query.toDate + 'T23:59:59.999Z');
+        }
+      }
+
+      if (query.isCOD !== undefined) {
+        where.isCOD = query.isCOD === 'true';
+      }
     }
 
     const orders = await this.prisma.order.findMany({

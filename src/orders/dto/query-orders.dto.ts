@@ -67,4 +67,12 @@ export class QueryOrdersDto {
   @IsString()
   @IsIn(['asc', 'desc'])
   sortOrder?: 'asc' | 'desc';
+
+  @ApiPropertyOptional({
+    example: 'abc123,def456,ghi789',
+    description: 'IDs específicos de órdenes separados por coma',
+  })
+  @IsOptional()
+  @IsString()
+  ids?: string;
 }

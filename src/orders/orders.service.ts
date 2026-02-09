@@ -84,7 +84,7 @@ export class OrdersService {
       where.isCOD = query.isCOD === 'true';
     }
 
-    const [orders, total] = await Promise.all([
+    const [orders, total, counts] = await Promise.all([
       this.prisma.order.findMany({
         where,
         orderBy: { createdAt: 'desc' },
@@ -92,6 +92,7 @@ export class OrdersService {
         take: limit,
       }),
       this.prisma.order.count({ where }),
+      this.getOrderCounts(userId),
     ]);
 
     return {
@@ -101,6 +102,7 @@ export class OrdersService {
         page,
         limit,
         totalPages: Math.ceil(total / limit),
+        counts,
       },
     };
   }
@@ -167,5 +169,34 @@ export class OrdersService {
       where: { dayOfWeek: today },
     });
     return cost?.cost ?? 3.5;
+  }
+
+  private async getOrderCounts(userId: string) {
+    const statuses = await this.prisma.order.groupBy({
+      by: ['status'],
+      where: { userId },
+      _count: true,
+    });
+
+    const counts = {
+      pending: 0,
+      inTransit: 0,
+      delivered: 0,
+      cancelled: 0,
+    };
+
+    statuses.forEach((s) => {
+      const status = s.status.toUpperCase();
+      if (status === 'PENDING') counts.pending = s._count;
+      else if (status === 'IN_TRANSIT') counts.inTransit = s._count;
+      else if (status === 'DELIVERED') counts.delivered = s._count;
+      else if (status === 'CANCELLED') counts.cancelled = s._count;
+    });
+
+    return {
+      ...counts,
+      pendingTotal: counts.pending + counts.inTransit + counts.cancelled,
+      deliveredTotal: counts.delivered,
+    };
   }
 }

@@ -44,6 +44,22 @@ export class OrdersController {
     res.send(csv);
   }
 
+  @Get(':id/pdf')
+  @ApiOperation({ summary: 'Generar PDF de una orden' })
+  async generatePdf(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Res() res: Response,
+  ) {
+    const pdf = await this.ordersService.generatePdf(req.user.userId, id);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="orden-${id.slice(-6)}.pdf"`,
+    );
+    res.send(pdf);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Obtener detalle de una orden' })
   findOne(@Req() req: any, @Param('id') id: string) {

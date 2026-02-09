@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { QueryOrdersDto } from './dto/query-orders.dto';
+import puppeteer from 'puppeteer';
+import { getOrderPdfTemplate } from './templates/order-pdf.template';
 
 @Injectable()
 export class OrdersService {
@@ -59,10 +61,11 @@ export class OrdersService {
     const limit = parseInt(query.limit || '10', 10);
     const skip = (page - 1) * limit;
 
+    /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
     const where: any = { userId };
 
     if (query.status) {
-      const statuses = query.status.split(',').map(s => s.trim());
+      const statuses = query.status.split(',').map((s) => s.trim());
       where.status = statuses.length === 1 ? statuses[0] : { in: statuses };
     }
 
@@ -94,6 +97,7 @@ export class OrdersService {
       this.prisma.order.count({ where }),
       this.getOrderCounts(userId),
     ]);
+    /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
 
     return {
       data: orders,
@@ -161,6 +165,42 @@ export class OrdersService {
 
     const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
     return csv;
+  }
+
+  async generatePdf(userId: string, orderId: string): Promise<Uint8Array> {
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, userId },
+      include: { user: true },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Orden no encontrada');
+    }
+
+    const html = getOrderPdfTemplate(order);
+
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    });
+
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+
+    const pdf = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: {
+        top: '20px',
+        right: '20px',
+        bottom: '20px',
+        left: '20px',
+      },
+    });
+
+    await browser.close();
+
+    return pdf;
   }
 
   private async getShippingCostForToday(): Promise<number> {

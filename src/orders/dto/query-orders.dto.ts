@@ -3,6 +3,7 @@ import {
   IsString,
   IsNumberString,
   IsBooleanString,
+  IsIn,
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -41,4 +42,29 @@ export class QueryOrdersDto {
   @IsOptional()
   @IsNumberString()
   limit?: string;
+
+  @ApiPropertyOptional({
+    example: 'createdAt',
+    description:
+      'Campo por el cual ordenar (clientName, clientDepartment, clientMunicipality, createdAt, status)',
+  })
+  @IsOptional()
+  @IsString()
+  @IsIn([
+    'clientName',
+    'clientDepartment',
+    'clientMunicipality',
+    'createdAt',
+    'status',
+  ])
+  sortBy?: string;
+
+  @ApiPropertyOptional({
+    example: 'desc',
+    description: 'Dirección del ordenamiento (asc o desc)',
+  })
+  @IsOptional()
+  @IsString()
+  @IsIn(['asc', 'desc'])
+  sortOrder?: 'asc' | 'desc';
 }

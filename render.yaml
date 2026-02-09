@@ -4,8 +4,9 @@ services:
     runtime: node
     region: oregon
     plan: free
+    rootDir: .
     buildCommand: pnpm install && pnpm run build
-    startCommand: pnpm run start:prod
+    startCommand: node dist/main.js
     healthCheckPath: /api/docs
     envVars:
       - key: NODE_VERSION

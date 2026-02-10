@@ -3,6 +3,7 @@ import {
   ValidationOptions,
   ValidationArguments,
 } from 'class-validator';
+import { isPastDate } from '../../../common/utils/date.util';
 
 export function IsNotPastDate(validationOptions?: ValidationOptions) {
   return function (object: object, propertyName: string) {
@@ -14,10 +15,7 @@ export function IsNotPastDate(validationOptions?: ValidationOptions) {
       validator: {
         validate(value: any) {
           if (!value) return true; // Si es opcional, permitir null/undefined
-          const date = new Date(value);
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          return date >= today;
+          return !isPastDate(value);
         },
         defaultMessage(args: ValidationArguments) {
           return 'La fecha programada no puede ser anterior a hoy';

@@ -8,6 +8,7 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { parseIsoUtcDate } from '../common/utils/date.util';
 
 @Injectable()
 export class AuthService {
@@ -32,7 +33,7 @@ export class AuthService {
         firstName: dto.firstName,
         lastName: dto.lastName,
         gender: dto.gender,
-        birthDate: new Date(dto.birthDate),
+        birthDate: parseIsoUtcDate(dto.birthDate),
         email: dto.email,
         whatsappCode: dto.whatsappCode,
         whatsappNumber: dto.whatsappNumber,

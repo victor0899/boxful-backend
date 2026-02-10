@@ -6,6 +6,13 @@ import puppeteer from 'puppeteer-core';
 import chromium from '@sparticuz/chromium';
 import { getOrderPdfTemplate } from './templates/order-pdf.template';
 import { Workbook } from 'exceljs';
+import {
+  parseIsoUtcDate,
+  parseStartOfDayUtc,
+  parseEndOfDayUtc,
+  getCurrentDayOfWeek,
+  formatDate,
+} from '../common/utils/date.util';
 
 @Injectable()
 export class OrdersService {
@@ -33,7 +40,7 @@ export class OrdersService {
         userId,
         // Nuevos campos
         pickupAddress: dto.pickupAddress,
-        scheduledDate: new Date(dto.scheduledDate),
+        scheduledDate: parseIsoUtcDate(dto.scheduledDate),
         firstName: dto.firstName,
         lastName: dto.lastName,
         phoneCode: dto.phoneCode,
@@ -78,10 +85,10 @@ export class OrdersService {
     if (query.fromDate || query.toDate) {
       where.createdAt = {};
       if (query.fromDate) {
-        where.createdAt.gte = new Date(query.fromDate);
+        where.createdAt.gte = parseStartOfDayUtc(query.fromDate);
       }
       if (query.toDate) {
-        where.createdAt.lte = new Date(query.toDate + 'T23:59:59.999Z');
+        where.createdAt.lte = parseEndOfDayUtc(query.toDate);
       }
     }
 
@@ -159,10 +166,10 @@ export class OrdersService {
       if (query.fromDate || query.toDate) {
         where.createdAt = {};
         if (query.fromDate) {
-          where.createdAt.gte = new Date(query.fromDate);
+          where.createdAt.gte = parseStartOfDayUtc(query.fromDate);
         }
         if (query.toDate) {
-          where.createdAt.lte = new Date(query.toDate + 'T23:59:59.999Z');
+          where.createdAt.lte = parseEndOfDayUtc(query.toDate);
         }
       }
 
@@ -195,9 +202,9 @@ export class OrdersService {
       'Fecha Entrega',
     ];
 
-    const formatDate = (date: Date | null | undefined): string => {
+    const formatDateLocal = (date: Date | null | undefined): string => {
       if (!date) return '';
-      return new Date(date).toLocaleDateString('es-GT', {
+      return formatDate(date, 'es-GT', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
@@ -253,10 +260,10 @@ export class OrdersService {
       if (query.fromDate || query.toDate) {
         where.createdAt = {};
         if (query.fromDate) {
-          where.createdAt.gte = new Date(query.fromDate);
+          where.createdAt.gte = parseStartOfDayUtc(query.fromDate);
         }
         if (query.toDate) {
-          where.createdAt.lte = new Date(query.toDate + 'T23:59:59.999Z');
+          where.createdAt.lte = parseEndOfDayUtc(query.toDate);
         }
       }
 
@@ -313,9 +320,9 @@ export class OrdersService {
       return translations[status] || status;
     };
 
-    const formatDate = (date: Date | null | undefined): string => {
+    const formatDateLocal = (date: Date | null | undefined): string => {
       if (!date) return '';
-      return new Date(date).toLocaleDateString('es-GT', {
+      return formatDate(date, 'es-GT', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',

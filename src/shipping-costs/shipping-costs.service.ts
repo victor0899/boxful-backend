@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { getCurrentDayOfWeek } from '../common/utils/date.util';
 
 @Injectable()
 export class ShippingCostsService {
@@ -12,7 +13,7 @@ export class ShippingCostsService {
   }
 
   async findToday() {
-    const today = new Date().getDay();
+    const today = getCurrentDayOfWeek();
     const cost = await this.prisma.shippingCost.findUnique({
       where: { dayOfWeek: today },
     });

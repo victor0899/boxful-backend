@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { DateTime } from 'luxon';
 
 const prisma = new PrismaClient();
 
@@ -37,7 +38,7 @@ async function main() {
       firstName: 'Usuario',
       lastName: 'De Prueba',
       gender: 'M',
-      birthDate: new Date('1990-01-01'),
+      birthDate: DateTime.fromISO('1990-01-01', { zone: 'utc' }).toJSDate(),
       whatsappCode: '+503',
       whatsappNumber: '70001234',
       email: 'test@boxful.com',

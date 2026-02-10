@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { SettlementService } from '../settlement/settlement.service';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { nowUtcDate } from '../common/utils/date.util';
 
 @Injectable()
 export class WebhooksService {
@@ -24,7 +25,7 @@ export class WebhooksService {
     };
 
     if (dto.status === 'DELIVERED') {
-      updateData.deliveredAt = new Date();
+      updateData.deliveredAt = nowUtcDate();
     }
 
     if (dto.codCollectedAmount !== undefined) {

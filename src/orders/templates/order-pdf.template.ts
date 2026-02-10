@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { DateTime } from 'luxon';
 
 export const getOrderPdfTemplate = (order: any) => {
   const formatDate = (date: Date): string => {
@@ -17,8 +18,8 @@ export const getOrderPdfTemplate = (order: any) => {
       'Noviembre',
       'Diciembre',
     ];
-    const d = new Date(date);
-    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    const dt = DateTime.fromJSDate(date);
+    return `${dt.day} ${months[dt.month - 1]} ${dt.year}`;
   };
 
   const translateStatus = (status: string): string => {

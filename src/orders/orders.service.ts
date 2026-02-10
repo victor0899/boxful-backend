@@ -2,7 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { QueryOrdersDto } from './dto/query-orders.dto';
-import puppeteer from 'puppeteer-core';
+import puppeteerCore from 'puppeteer-core';
+import puppeteerFull from 'puppeteer';
 import chromium from '@sparticuz/chromium';
 import { getOrderPdfTemplate } from './templates/order-pdf.template';
 import { Workbook } from 'exceljs';
@@ -392,11 +393,19 @@ export class OrdersService {
 
     const html = getOrderPdfTemplate(order);
 
-    const browser = await puppeteer.launch({
-      args: chromium.args,
-      executablePath: await chromium.executablePath(),
-      headless: true,
-    });
+    // Use local Chromium in development, @sparticuz/chromium in production
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    const browser = isProduction
+      ? await puppeteerCore.launch({
+          args: chromium.args,
+          executablePath: await chromium.executablePath(),
+          headless: true,
+        })
+      : await puppeteerFull.launch({
+          headless: true,
+          args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        });
 
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: 'networkidle0' });

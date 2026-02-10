@@ -11,7 +11,6 @@ import {
   parseIsoUtcDate,
   parseStartOfDayUtc,
   parseEndOfDayUtc,
-  getCurrentDayOfWeek,
   formatDate,
 } from '../common/utils/date.util';
 
@@ -20,7 +19,9 @@ export class OrdersService {
   constructor(private prisma: PrismaService) {}
 
   async create(userId: string, dto: CreateOrderDto) {
-    const shippingCost = await this.getShippingCostForToday();
+    // Calculate shipping cost based on SCHEDULED date, not today
+    const scheduledDate = parseIsoUtcDate(dto.scheduledDate);
+    const shippingCost = await this.getShippingCostForDate(scheduledDate);
 
     // Calcular clientName y clientPhone automáticamente
     const clientName = `${dto.firstName} ${dto.lastName}`;
@@ -41,7 +42,7 @@ export class OrdersService {
         userId,
         // Nuevos campos
         pickupAddress: dto.pickupAddress,
-        scheduledDate: parseIsoUtcDate(dto.scheduledDate),
+        scheduledDate: scheduledDate,
         firstName: dto.firstName,
         lastName: dto.lastName,
         phoneCode: dto.phoneCode,
@@ -441,10 +442,12 @@ export class OrdersService {
     return result._sum.settlementAmount || 0;
   }
 
-  private async getShippingCostForToday(): Promise<number> {
-    const today = new Date().getDay();
+  private async getShippingCostForDate(date: Date): Promise<number> {
+    // Get day of week (0-6, Sunday-Saturday) from the scheduled date in UTC
+    const dayOfWeek = date.getUTCDay(); // 0 = Sunday, 6 = Saturday
+
     const cost = await this.prisma.shippingCost.findUnique({
-      where: { dayOfWeek: today },
+      where: { dayOfWeek },
     });
     return cost?.cost ?? 3.5;
   }

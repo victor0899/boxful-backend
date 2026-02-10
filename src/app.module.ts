@@ -7,10 +7,18 @@ import { WebhooksModule } from './webhooks/webhooks.module';
 import { ShippingCostsModule } from './shipping-costs/shipping-costs.module';
 import { SettlementModule } from './settlement/settlement.module';
 import { VerificationModule } from './verification/verification.module';
+import { envValidationSchema } from './config/env.validation';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validationSchema: envValidationSchema,
+      validationOptions: {
+        allowUnknown: true, // Allow other env vars not in schema
+        abortEarly: false, // Show all validation errors at once
+      },
+    }),
     PrismaModule,
     AuthModule,
     OrdersModule,

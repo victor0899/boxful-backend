@@ -1,134 +1,244 @@
-# Boxful Backend API
+# Boxful Backend - Prueba Técnica
 
-API REST para el sistema de gestión de órdenes de envío de Boxful.
+API REST para gestión de órdenes de envío con soporte para pago contra entrega (COD), webhooks y cálculo automático de liquidación.
 
-## Stack Tecnológico
+## Tecnologías Utilizadas
 
-| Tecnología | Versión | Justificación |
-|-----------|---------|---------------|
-| **NestJS** | 11.x | Release estable con mejor soporte de TypeScript 5, decoradores modernos y la mejor integración con Prisma |
-| **Prisma** | 6.x | MongoDB GA estable. Tipado fuerte end-to-end con TypeScript |
-| **MongoDB Atlas** | M0 free | Base de datos como servicio, facilita deploy y colaboración |
-| **TypeScript** | 5.x | Type safety end-to-end, mejor DX con autocompletado |
-| **pnpm** | 10.x | Resolución estricta de dependencias, 3x más rápido que npm |
+- **NestJS 11** - Framework backend con TypeScript
+- **Prisma 6** - ORM con soporte para MongoDB
+- **MongoDB Atlas** - Base de datos (M0 free tier)
+- **JWT** - Autenticación con @nestjs/passport
+- **Luxon** - Manejo de fechas en UTC
+- **Joi** - Validación de variables de entorno
+
+## Requisitos Implementados
+
+### Requisitos Básicos
+
+- Autenticación con JWT (tokens válidos 24 horas)
+- Órdenes guardadas en MongoDB con Prisma
+- Filtros para búsquedas (estado, fechas, COD, nombre cliente)
+- Paginación y ordenamiento
+- Exportación de datos
+
+### Punto Extra - Módulo de Liquidación
+
+- Gestión de órdenes COD con monto esperado y monto real recolectado
+- Webhook para actualizar estado de órdenes y montos
+- Costos de envío configurables por día de la semana
+- Cálculo automático de liquidación:
+  - COD: Monto Recolectado - Costo Envío - Comisión (0.01%, máx. $25)
+  - No COD: -Costo Envío (valor negativo)
+- Soporte para diferencia entre monto esperado y monto real
+
+### Funcionalidades Adicionales
+
+- Verificación de email con códigos de 6 dígitos (Resend)
+- Exportación a Excel con formato profesional
+- Generación de PDFs para etiquetas de orden
+- Validación automática de variables de entorno con Joi
+- Manejo consistente de fechas en UTC con Luxon
+- Documentación Swagger interactiva
+- Cálculo de costo basado en fecha programada de entrega
+
+## Instalación y Configuración
+
+### 1. Clonar e instalar dependencias
+
+```bash
+git clone https://github.com/victor0899/boxful-backend.git
+cd boxful-backend
+pnpm install
+```
+
+### 2. Configurar variables de entorno
+
+Crear archivo `.env` con las siguientes variables:
+
+```env
+DATABASE_URL="mongodb+srv://user:password@cluster.mongodb.net/boxful"
+JWT_SECRET="tu-secret-key-minimo-10-caracteres"
+PORT=3001
+RESEND_API_KEY="tu-api-key-de-resend"
+FRONTEND_URL="http://localhost:3000"
+```
+
+Nota: El sistema valida que todas las variables requeridas existan al iniciar.
+
+### 3. Generar Prisma Client y ejecutar seeders
+
+```bash
+npx prisma generate
+pnpm run seed
+```
+
+El seed crea:
+- 7 registros de costos de envío (Domingo: $5.00, Lunes-Martes: $3.00, etc.)
+- Usuario de prueba: `test@boxful.com` / `password123`
+
+### 4. Iniciar servidor
+
+```bash
+# Desarrollo
+pnpm run start:dev
+
+# Producción
+pnpm run build
+pnpm run start:prod
+```
+
+El servidor inicia en `http://localhost:3001`
+
+## Documentación de la API
+
+### Swagger UI
+
+Disponible en `http://localhost:3001/api/docs` con todas las rutas documentadas y probables directamente desde el navegador.
+
+### Endpoints Principales
+
+#### Autenticación
+
+```
+POST   /api/auth/register      Registro de usuario
+POST   /api/auth/login         Login (retorna JWT token)
+GET    /api/auth/profile       Perfil del usuario autenticado
+POST   /api/verification/send-code    Enviar código de verificación
+POST   /api/verification/verify-code  Verificar código
+```
+
+#### Órdenes (requieren autenticación)
+
+```
+POST   /api/orders                    Crear orden
+GET    /api/orders                    Listar con filtros y paginación
+GET    /api/orders/:id                Detalle de orden
+GET    /api/orders/export/csv         Exportar a CSV
+GET    /api/orders/export/excel       Exportar a Excel
+GET    /api/orders/:id/pdf            Generar PDF de orden
+GET    /api/orders/settlement-balance Balance de liquidación
+```
+
+**Filtros disponibles:**
+- `status` - PENDING, IN_TRANSIT, DELIVERED, CANCELLED
+- `fromDate` / `toDate` - Rango de fechas (formato: YYYY-MM-DD)
+- `search` - Búsqueda por nombre de cliente
+- `isCOD` - true/false
+- `page` / `limit` - Paginación
+- `sortBy` / `sortOrder` - Ordenamiento
+
+#### Webhooks (no requieren autenticación)
+
+```
+POST   /api/webhooks/order-status     Actualizar estado y monto recolectado
+```
+
+Payload ejemplo:
+```json
+{
+  "orderId": "507f1f77bcf86cd799439011",
+  "status": "DELIVERED",
+  "codCollectedAmount": 150.00
+}
+```
+
+#### Costos de Envío
+
+```
+GET    /api/shipping-costs            Todos los costos
+GET    /api/shipping-costs/today      Costo del día actual
+```
 
 ## Estructura del Proyecto
 
 ```
 src/
-  auth/           -> Autenticación (register, login, JWT)
-  orders/         -> CRUD de órdenes + paginación + CSV
-  webhooks/       -> Webhook para actualizar estado de órdenes
-  shipping-costs/ -> Costos de envío por día de la semana
-  settlement/     -> Cálculo de liquidación (COD y no-COD)
-  prisma/         -> Servicio singleton de Prisma
-  seed/           -> Datos iniciales (costos, usuario prueba)
+├── auth/              JWT, registro, login, estrategias
+├── verification/      Códigos de verificación por email
+├── orders/            CRUD, filtros, exportación, PDFs
+├── webhooks/          Actualización de estado de órdenes
+├── shipping-costs/    Costos por día de semana
+├── settlement/        Cálculo de liquidación COD
+├── config/            Validación de variables de entorno
+├── common/utils/      Utilidades (fechas en UTC con Luxon)
+├── prisma/            Servicio global de Prisma
+└── seed/              Datos iniciales
 ```
 
-## Instalación
+## Modelo de Datos
 
-```bash
-# Clonar repositorio
-git clone https://github.com/victor0899/boxful-backend.git
-cd boxful-backend
+### User
+Información del comercio: nombre, email, contraseña (bcrypt), WhatsApp, fecha de nacimiento.
 
-# Instalar dependencias
-pnpm install
+### Order
+- Información de recogida: dirección, fecha programada, instrucciones
+- Datos del destinatario: nombre, teléfono, dirección, departamento, municipio
+- Paquetes: array de objetos con descripción, peso, dimensiones, cantidad
+- COD: flags y montos (esperado vs recolectado)
+- Montos calculados: costo de envío, comisión, liquidación
+- Estados: PENDING, IN_TRANSIT, DELIVERED, CANCELLED
+- Timestamps: creación, actualización, entrega
 
-# Configurar variables de entorno
-cp .env.example .env
-# Editar .env con tu connection string de MongoDB Atlas
+### ShippingCost
+Costos por día de semana (0-6), donde 0 = Domingo, 6 = Sábado.
 
-# Generar cliente Prisma
-npx prisma generate
+## Lógica de Negocio
 
-# Ejecutar seeders (costos de envío + usuario de prueba)
-pnpm run seed
+### Cálculo de Costo de Envío
+El costo se determina según el día programado de entrega (scheduledDate), no el día actual. Esto permite que el costo refleje correctamente los costos operativos del día de la entrega.
 
-# Iniciar en desarrollo
-pnpm run start:dev
+### Cálculo de Liquidación (ejecutado automáticamente al marcar orden como DELIVERED)
+
+**Para órdenes COD:**
+```
+Comisión = min(MontoRecolectado * 0.0001, 25)
+Liquidación = MontoRecolectado - CostoEnvío - Comisión
 ```
 
-## Variables de Entorno
-
-```env
-DATABASE_URL="mongodb+srv://user:password@cluster.mongodb.net/boxful?retryWrites=true&w=majority"
-JWT_SECRET="your-secret-key-here"
-PORT=3001
+**Para órdenes sin COD:**
+```
+Liquidación = -CostoEnvío
 ```
 
-## Seeders
+El monto de liquidación puede ser negativo, representando la deuda del comercio con el servicio de envíos.
 
-Ejecutar `pnpm run seed` para crear:
-- **Costos de envío**: 7 registros (Lunes-Domingo) con costos entre $3.00 y $5.00
-- **Usuario de prueba**: `test@boxful.com` / `password123`
+### Manejo de Fechas
+Todas las fechas se almacenan en UTC en la base de datos usando Luxon. El frontend debe convertir a la zona horaria local del usuario para visualización.
 
-## API Endpoints
+## Seguridad
 
-### Auth
-| Método | Ruta | Descripción |
-|--------|------|-------------|
-| POST | `/api/auth/register` | Registro (name, email, password) |
-| POST | `/api/auth/login` | Login -> { accessToken } |
-| GET | `/api/auth/profile` | Perfil del usuario (protegido) |
-
-### Orders (protegido con JWT)
-| Método | Ruta | Descripción |
-|--------|------|-------------|
-| POST | `/api/orders` | Crear orden (datos cliente + paquetes + COD opcional) |
-| GET | `/api/orders` | Listar órdenes con paginación y filtros |
-| GET | `/api/orders/:id` | Detalle de una orden |
-| GET | `/api/orders/export/csv` | Exportar órdenes a CSV |
-
-**Filtros disponibles en GET /api/orders:**
-- `?status=PENDING` - por estado (PENDING, IN_TRANSIT, DELIVERED, CANCELLED)
-- `?fromDate=2026-01-01&toDate=2026-02-01` - rango de fechas
-- `?search=nombre` - búsqueda por nombre de cliente
-- `?isCOD=true` - solo órdenes con pago contra entrega
-- `?page=1&limit=10` - paginación
-
-### Webhooks
-| Método | Ruta | Descripción |
-|--------|------|-------------|
-| POST | `/api/webhooks/order-status` | Actualizar estado + monto recolectado |
-
-### Shipping Costs
-| Método | Ruta | Descripción |
-|--------|------|-------------|
-| GET | `/api/shipping-costs` | Costos de todos los días |
-| GET | `/api/shipping-costs/today` | Costo del día actual |
-
-## Documentación Swagger
-
-Disponible en `http://localhost:3001/api/docs` al ejecutar el servidor.
-
-## Lógica de Liquidación (Punto Extra)
-
-```
-COD (contra entrega):
-  comisión = min(montoRecolectado * 0.0001, 25)
-  liquidación = montoRecolectado - costoEnvío - comisión
-
-No COD:
-  liquidación = -costoEnvío
-```
-
-## Esfuerzos Extra
-
-- **Pago contra entrega (COD)**: Soporte completo para órdenes con monto esperado y monto recolectado
-- **Webhook**: Endpoint para recibir actualizaciones de estado de las órdenes (simula servicio externo de logística)
-- **Liquidación**: Cálculo automático al entregar una orden, incluyendo comisión COD
-- **Costos dinámicos**: Costo de envío basado en el día de la semana, configurable desde base de datos
-- **Exportación CSV**: Descarga de todas las órdenes del usuario en formato CSV
-- **Swagger**: Documentación interactiva de la API completa
-- **Seeders**: Script para inicializar la base de datos con datos de prueba
+- Contraseñas hasheadas con bcrypt (10 salt rounds)
+- Tokens JWT firmados con secret desde variables de entorno
+- Guards de autenticación en todas las rutas protegidas
+- Validación de datos con class-validator y class-transformer
+- Validación de variables de entorno en startup (fail-fast)
+- CORS configurado para dominios permitidos
 
 ## Scripts Disponibles
 
 ```bash
-pnpm run start:dev    # Desarrollo con hot-reload
-pnpm run build        # Build de producción
-pnpm run start:prod   # Ejecutar build de producción
-pnpm run seed         # Ejecutar seeders
-pnpm run lint         # Linting
+pnpm run start:dev     # Desarrollo con hot-reload
+pnpm run build         # Build para producción
+pnpm run start:prod    # Ejecutar build de producción
+pnpm run seed          # Poblar base de datos
+pnpm run lint          # Linting con ESLint
 ```
+
+## Notas de Implementación
+
+- **Prisma Client**: Se genera automáticamente en `postinstall`
+- **MongoDB**: No requiere migraciones, se usa `db push` para sincronizar schema
+- **Puppeteer**: En desarrollo usa Chromium local, en producción usa @sparticuz/chromium para compatibilidad con entornos serverless
+- **Tipos TypeScript**: Strict mode habilitado (noImplicitAny, strictNullChecks)
+
+## Consideraciones de Producción
+
+El proyecto está configurado para desplegarse en entornos serverless (Render, AWS Lambda) con:
+- Variables de entorno validadas automáticamente
+- Chromium optimizado para serverless
+- MongoDB Atlas como base de datos administrada
+- Logs estructurados para debugging
+
+## Contacto
+
+Para consultas sobre la implementación: victor0899

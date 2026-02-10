@@ -7,11 +7,20 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: [
-      'http://localhost:3000',
-      'https://boxful-frontend.vercel.app',
-      process.env.FRONTEND_URL,
-    ].filter(Boolean) as string[],
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        'http://localhost:3000',
+        'https://boxful-frontend.vercel.app',
+        process.env.FRONTEND_URL,
+      ].filter(Boolean);
+
+      // Permitir todos los dominios de Vercel
+      if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   });
 
